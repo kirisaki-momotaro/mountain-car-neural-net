@@ -85,7 +85,7 @@ class Trainer:
         # In-place gradient clipping
         torch.nn.utils.clip_grad_value_(self.policy_net.parameters(), 100)
         self.optimizer.step()
-        if turn_num % 100 == 0:
+        if turn_num % 1000 == 0:
             self.policy_net.save_the_model(weights_filename="models/pnet.pt")
             self.target_net.save_the_model(weights_filename="models/tnet.pt")
-            print("saving...")
+            print(f"step:{turn_num} saving...")

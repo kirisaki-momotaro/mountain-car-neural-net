@@ -88,4 +88,4 @@ class Trainer:
         if turn_num % 1000 == 0:
             self.policy_net.save_the_model(weights_filename="models/pnet.pt")
             self.target_net.save_the_model(weights_filename="models/tnet.pt")
-            print(f"step:{turn_num} saving...")
+            #print(f"step:{turn_num} saving...")

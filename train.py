@@ -8,6 +8,7 @@ trainer = Trainer()
 observation, info = env.reset(seed=42)
 num_episodes = 50
 for i_episode in range(num_episodes):
+    print(f"episode :{i_episode}")
     # Initialize the environment and get its state
     state, info = env.reset()
     state = torch.tensor(state, dtype=torch.float32, device="cpu").unsqueeze(0)

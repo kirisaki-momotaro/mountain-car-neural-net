@@ -1,27 +1,17 @@
 import gym
 import torch
+from model import NeuralNet
 from itertools import count
 from trainer import Trainer
+
 env = gym.make("MountainCar-v0", render_mode="human")
-
-trainer = Trainer(is_testing=True)
-
+player = NeuralNet()
+player.load_the_model(weights_filename="models/pnet.pt")
 state, info = env.reset()
 state = torch.tensor(state, dtype=torch.float32, device="cpu").unsqueeze(0)
 while True:
-    action = trainer.select_action(state,env)
+    #print(state)
+    action = player(state).max(1).indices.view(1, 1)
     observation, reward, terminated, truncated, _ = env.step(action.item())
-    reward = torch.tensor([reward], device="cpu")
-    done = terminated or truncated
-
-    if terminated:
-        next_state = None
-        break
-    else:
-        next_state = torch.tensor(observation, dtype=torch.float32, device="cpu").unsqueeze(0)
-
-    # Move to the next state
-    state = next_state
-
-
-
+    state = torch.tensor(observation, dtype=torch.float32, device="cpu").unsqueeze(0)
+    #print(state)

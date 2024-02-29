@@ -8,7 +8,7 @@ import torch.nn as nn
 
 
 class Trainer:
-    def __init__(self,is_testing=False,
+    def __init__(self, is_testing=False,
                  batch_size=128,
                  gamma=0.99,
                  epsilon_start=0.9,
@@ -19,7 +19,8 @@ class Trainer:
                  number_of_actions=3,
                  number_of_observations=2):
 
-        if is_testing == True:
+        if is_testing:
+            print("testing")
             self.policy_net = NeuralNet().load_the_model(weights_filename="models/pnet.pt")
             self.target_net = NeuralNet().load_the_model(weights_filename="models/tnet.pt")
         else:
@@ -44,9 +45,12 @@ class Trainer:
         eps_threshold = 0.05 + (0.9 - 0.05) * \
                         math.exp(-1. * self.steps_done / 1000)
         self.steps_done += 1
-        if self.is_testing == True:
-            return torch.tensor([[env.action_space.sample()]], dtype=torch.long)
-
+        # print(eps_threshold)
+        if self.is_testing:
+            with torch.no_grad():
+                return self.policy_net(state).max(1).indices.view(1, 1)
+        if eps_threshold < 0.05:
+            eps_threshold = 0.05
         if sample > eps_threshold:
             with torch.no_grad():
                 return self.policy_net(state).max(1).indices.view(1, 1)
@@ -88,4 +92,4 @@ class Trainer:
         if turn_num % 1000 == 0:
             self.policy_net.save_the_model(weights_filename="models/pnet.pt")
             self.target_net.save_the_model(weights_filename="models/tnet.pt")
-            #print(f"step:{turn_num} saving...")
+            # print(f"step:{turn_num} saving...")

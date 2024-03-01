@@ -57,6 +57,7 @@ class Trainer:
     def optmz_model(self, turn_num):
         if len(self.memory) < 128: # if experiences number not enough don't optimize
             return
+        # sample a number of past experiences from memory
         transitions = self.memory.sample(self.batch_size)
         batch = Transition(*zip(*transitions))
 
@@ -80,7 +81,7 @@ class Trainer:
         # Compute Huber loss
         criterion = nn.SmoothL1Loss()
         loss = criterion(state_action_values, expected_state_action_values.unsqueeze(1))
-        # Optimize the model
+        # Optimize the model based on the loss
         self.optimizer.zero_grad()
         loss.backward()
         # In-place gradient clipping

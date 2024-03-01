@@ -8,7 +8,7 @@ import torch.nn as nn
 
 
 class Trainer:
-    def __init__(self, is_testing=False,
+    def __init__(self,
                  batch_size=128,
                  gamma=0.99,
                  epsilon_start=0.9,
@@ -19,15 +19,9 @@ class Trainer:
                  number_of_actions=3,
                  number_of_observations=2):
 
-        if is_testing:
-            print("testing")
-            self.policy_net = NeuralNet().load_the_model(weights_filename="models/pnet.pt")
-            self.target_net = NeuralNet().load_the_model(weights_filename="models/tnet.pt")
-        else:
-            self.policy_net = NeuralNet().to("cpu")
-            self.target_net = NeuralNet().to("cpu")
-            self.optimizer = optim.AdamW(self.policy_net.parameters(), lr=LR, amsgrad=True)
-
+        self.policy_net = NeuralNet().to("cpu")
+        self.target_net = NeuralNet().to("cpu")
+        self.optimizer = optim.AdamW(self.policy_net.parameters(), lr=LR, amsgrad=True)
         self.memory = ReplayMemory(10000)
         self.batch_size = batch_size,
         self.gamma = gamma,
@@ -38,27 +32,30 @@ class Trainer:
         self.number_of_observations = number_of_observations
         self.steps_done = 0
         self.TAU = TAU
-        self.is_testing = is_testing
 
+    # decide based on eps_threshold value between expected optimal and random action
     def select_action(self, state, env):
         sample = random.random()
+        # decreases over time moving from exploration to exploitation
         eps_threshold = 0.05 + (0.9 - 0.05) * \
                         math.exp(-1. * self.steps_done / 1000)
         self.steps_done += 1
-        # print(eps_threshold)
-        if self.is_testing:
-            with torch.no_grad():
-                return self.policy_net(state).max(1).indices.view(1, 1)
+        # set minimum threshold
+        # a small amount of randomness can be beneficial even for later runs
         if eps_threshold < 0.05:
             eps_threshold = 0.05
+        # decide whether to explore or exploit
         if sample > eps_threshold:
             with torch.no_grad():
+                # expected optimal action
                 return self.policy_net(state).max(1).indices.view(1, 1)
         else:
+            # random action
             return torch.tensor([[env.action_space.sample()]], dtype=torch.long)
 
+    # optimizes weights and biases of the network
     def optmz_model(self, turn_num):
-        if len(self.memory) < 128:
+        if len(self.memory) < 128: # if experiences number not enough don't optimize
             return
         transitions = self.memory.sample(self.batch_size)
         batch = Transition(*zip(*transitions))
@@ -91,5 +88,4 @@ class Trainer:
         self.optimizer.step()
         if turn_num % 1000 == 0:
             self.policy_net.save_the_model(weights_filename="models/pnet.pt")
-            self.target_net.save_the_model(weights_filename="models/tnet.pt")
-            # print(f"step:{turn_num} saving...")
+

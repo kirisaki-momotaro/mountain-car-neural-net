@@ -17,13 +17,13 @@ class NeuralNet(nn.Module):
         return self.output_layer(x)
 
 
-
-    def save_the_model(self, weights_filename='models/latest.pt'):
+    # save the weights in a directory
+    def save_the_model(self, weights_filename='models/pnet.pt'):
         if not os.path.exists('models'):
             os.makedirs('models')
         torch.save(self.state_dict(), weights_filename)
-
-    def load_the_model(self, weights_filename='models/latest.pt'):
+    # load weights
+    def load_the_model(self, weights_filename='models/pnet.pt'):
         try:
             self.load_state_dict(torch.load(weights_filename))
             print("Model Load Sucessfully")
